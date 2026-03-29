@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student Task & Reminder Manager — Deepak</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">✓</div>
+        <div>
+          <div class="logo-text">TaskMgr</div>
+          <div class="logo-sub">BCSP-064 / IGNOU</div>
+        </div>
+      </div>
+      <button class="sidebar-close" onclick="toggleSidebar()" title="Close Menu">✕</button>
+    </div>
+
+    <div class="sidebar-user" id="sidebar-user">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div>
+        <div class="user-name" id="user-name">Not logged in</div>
+        <div class="user-role" id="user-role">Click to login</div>
+      </div>
+      <div class="user-actions" id="user-actions" style="display:none">
+        <button class="user-btn" onclick="openProfileModal()" title="Edit Profile">⚙</button>
+        <button class="user-btn logout" onclick="logout()" title="Logout">↪</button>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Main</div>
+      <div class="nav-item active" onclick="setView('dashboard')">
+        <span class="nav-icon">⊞</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="setView('all')">
+        <span class="nav-icon">☰</span> All Tasks
+        <span class="nav-badge" id="badge-all">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('pending')">
+        <span class="nav-icon">◷</span> Pending
+        <span class="nav-badge yellow" id="badge-pending">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('completed')">
+        <span class="nav-icon">✓</span> Completed
+        <span class="nav-badge" style="background:var(--green);color:#000" id="badge-done">0</span>
+      </div>
+
+      <div class="nav-section-title" style="margin-top:0.75rem">Priority</div>
+      <div class="nav-item" onclick="setView('high')">
+        <span class="nav-icon">🔴</span> High Priority
+        <span class="nav-badge red" id="badge-high">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('medium')">
+        <span class="nav-icon">🟡</span> Medium
+        <span class="nav-badge yellow" id="badge-medium">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('low')">
+        <span class="nav-icon">🟢</span> Low
+      </div>
+
+      <div class="nav-section-title" style="margin-top:0.75rem">Reminders</div>
+      <div class="nav-item" onclick="setView('overdue')">
+        <span class="nav-icon">⚠</span> Overdue
+        <span class="nav-badge red" id="badge-overdue">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('today')">
+        <span class="nav-icon">📅</span> Due Today
+        <span class="nav-badge yellow" id="badge-today">0</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="btn-add-task" onclick="openModal()">+ Add New Task</button>
+    </div>
+  </aside>
+
+  <!-- SIDEBAR OVERLAY (for mobile) -->
+  <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="hamburger-menu" onclick="toggleSidebar()" title="Toggle Menu">☰</button>
+      <div>
+        <div class="page-title" id="page-title">Dashboard</div>
+        <div class="page-sub" id="page-sub">Overview of your tasks</div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search tasks..." id="search-input" oninput="renderTasks()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="content">
+
+      <!-- REMINDER BANNER -->
+      <div class="reminder-banner" id="reminder-banner" style="display:none">
+        <span class="reminder-icon">⏰</span>
+        <div class="reminder-text">
+          <strong id="reminder-title">Upcoming Deadlines</strong>
+          <span id="reminder-desc">You have tasks due soon.</span>
+        </div>
+        <button class="reminder-close" onclick="document.getElementById('reminder-banner').style.display='none'">✕</button>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card blue">
+          <div class="stat-label">Total Tasks</div>
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-icon">📋</div>
+          <div class="stat-sub">All time</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">Pending</div>
+          <div class="stat-num" id="stat-pending">0</div>
+          <div class="stat-icon">◷</div>
+          <div class="stat-sub">In progress</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Completed</div>
+          <div class="stat-num" id="stat-done">0</div>
+          <div class="stat-icon">✓</div>
+          <div class="stat-sub">Done</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Overdue</div>
+          <div class="stat-num" id="stat-overdue">0</div>
+          <div class="stat-icon">⚠</div>
+          <div class="stat-sub">Past deadline</div>
+        </div>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="progress-section" id="progress-section">
+        <div class="progress-header">
+          <span class="progress-label">Overall Completion Progress</span>
+          <span class="progress-pct" id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- TASK LIST -->
+      <div class="section-header">
+        <div class="section-title" id="list-title">Active Tasks</div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+          <button class="filter-tab" onclick="setFilter('pending', this)">Pending</button>
+          <button class="filter-tab" onclick="setFilter('completed', this)">Done</button>
+        </div>
+      </div>
+
+      <div class="tasks-list" id="tasks-list"></div>
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">No tasks here yet. Add your first task!</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add New Task</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Task Title *</label>
+      <input class="form-input" id="f-title" type="text" placeholder="e.g. Complete assignment on DBMS"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-textarea" id="f-desc" placeholder="Details about this task..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <input class="form-input" id="f-subject" type="text" placeholder="e.g. MCS-021"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deadline *</label>
+        <input class="form-input" id="f-deadline" type="date"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Priority</label>
+      <select class="form-select" id="f-priority">
+        <option value="high">🔴 High Priority</option>
+        <option value="medium" selected>🟡 Medium Priority</option>
+        <option value="low">🟢 Low Priority</option>
+      </select>
+    </div>
+    <button class="btn-submit" id="modal-submit" type="button" onclick="submitTask()">Add Task</button>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="login-modal" onclick="closeLoginModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Login to Task Manager</div>
+      <button class="modal-close" onclick="closeLoginModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Name *</label>
+      <input class="form-input" id="login-name" type="text" placeholder="Enter your name"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Profile Picture</label>
+      <input class="form-input" id="login-avatar" type="file" accept="image/*" onchange="previewAvatar(this, 'login-avatar-preview')"/>
+      <div class="avatar-preview" id="login-avatar-preview"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Student ID</label>
+      <input class="form-input" id="login-id" type="text" placeholder="e.g. 2350664823"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Course</label>
+      <input class="form-input" id="login-course" type="text" placeholder="e.g. BCA"/>
+    </div>
+    <button class="btn-submit" onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profile-modal" onclick="closeProfileModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Profile</div>
+      <button class="modal-close" onclick="closeProfileModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Name *</label>
+      <input class="form-input" id="profile-name" type="text" placeholder="Enter your name"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Profile Picture</label>
+      <input class="form-input" id="profile-avatar" type="file" accept="image/*" onchange="previewAvatar(this, 'profile-avatar-preview')"/>
+      <div class="avatar-preview" id="profile-avatar-preview"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Student ID</label>
+      <input class="form-input" id="profile-id" type="text" placeholder="e.g. 2350664823"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Course</label>
+      <input class="form-input" id="profile-course" type="text" placeholder="e.g. BCA"/>
+    </div>
+    <button class="btn-submit" onclick="saveProfile()">Save Changes</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✓</span>
+  <span id="toast-msg">Task added!</span>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
